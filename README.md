@@ -1,6 +1,6 @@
 # ��� Self-Healing AWS Infrastructure (ECS + CloudWatch + Lambda)
 
-## ��� Overview
+##  Overview
 
 This project demonstrates a **self-healing cloud infrastructure** built on AWS that automatically detects application failures and remediates them **without human intervention**.
 
