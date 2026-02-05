@@ -1,0 +1,13 @@
+{
+  "name": "breakable-app",
+  "version": "1.0.0",
+  "description": "Intentionally breakable app for DevOps self-healing demos",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+ 

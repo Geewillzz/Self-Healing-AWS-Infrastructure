@@ -1,0 +1,82 @@
+import json
+import boto3
+import os
+
+ecs = boto3.client("ecs")
+sns = boto3.client("sns")
+
+CLUSTER_NAME = os.environ["CLUSTER_NAME"]
+SERVICE_NAME = os.environ["SERVICE_NAME"]
+SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
+
+def lambda_handler(event, context):
+    print("Received event:", json.dumps(event))
+
+    alarm_name = event["detail"]["alarmName"]
+    new_state = event["detail"]["state"]["value"]
+
+    if new_state != "ALARM":
+        print("Alarm not in ALARM state. Ignoring.")
+        return
+
+    action_taken = "none"
+
+    if "high-memory" in alarm_name or "alb-5xx" in alarm_name:
+        restart_tasks()
+        action_taken = "Restarted ECS tasks"
+
+    elif "high-cpu" in alarm_name:
+        scale_service()
+        action_taken = "Scaled ECS service"
+
+    notify(alarm_name, action_taken)
+
+    return {
+        "status": "success",
+        "alarm": alarm_name,
+        "action": action_taken
+    }
+
+def restart_tasks():
+    response = ecs.list_tasks(
+        cluster=CLUSTER_NAME,
+        serviceName=SERVICE_NAME
+    )
+
+    for task_arn in response["taskArns"]:
+        ecs.stop_task(
+            cluster=CLUSTER_NAME,
+            task=task_arn,
+            reason="Auto-remediation: restarting unhealthy task"
+        )
+
+def scale_service():
+    service = ecs.describe_services(
+        cluster=CLUSTER_NAME,
+        services=[SERVICE_NAME]
+    )["services"][0]
+
+    desired = service["desiredCount"]
+    max_scale = 4
+
+    if desired < max_scale:
+        ecs.update_service(
+            cluster=CLUSTER_NAME,
+            service=SERVICE_NAME,
+            desiredCount=desired + 1
+        )
+
+def notify(alarm_name, action):
+    message = f"""
+íº¨ Alarm Triggered: {alarm_name}
+í»  Action Taken: {action}
+í³¦ Cluster: {CLUSTER_NAME}
+í³¡ Service: {SERVICE_NAME}
+"""
+
+    sns.publish(
+        TopicArn=SNS_TOPIC_ARN,
+        Subject="Self-Healing Action Executed",
+        Message=message
+    )
+
