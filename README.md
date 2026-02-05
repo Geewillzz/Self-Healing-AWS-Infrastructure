@@ -1,16 +1,16 @@
-# ��� Self-Healing AWS Infrastructure (ECS + CloudWatch + Lambda)
+# ��� Self-Healing AWS Infrastructure (ECS + CloudWatch + Lambda)
 
-## ��� Overview
+## ��� Overview
 
-This project demonstrates a **self-healing cloud infrastructure** built on AWS that can automatically detect application failures and remediate them **without human intervention**.
+This project demonstrates a **self-healing cloud infrastructure** built on AWS that automatically detects application failures and remediates them **without human intervention**.
 
-The system monitors a containerized application running on **ECS Fargate** using **CloudWatch alarms**. When a failure or performance issue is detected, an **AWS Lambda function** is triggered to take corrective action such as restarting tasks or scaling the service. Human-readable alerts are sent via **SNS** so engineers stay informed.
+The system monitors a containerised application running on **ECS Fargate** using **CloudWatch alarms**. When a failure or performance issue is detected, an **AWS Lambda function** is triggered to take corrective action, such as restarting tasks or scaling the service. Human-readable alerts are sent via **SNS** so engineers stay informed.
 
-This project was built to simulate **real-world production incidents** and showcase practical DevOps and SRE skills at a junior-to-mid level.
+This project was built to simulate **real-world production incidents** and showcase practical my DevOps and SRE skills.
 
 ---
 
-## ��� Problem Statement
+## ��� Problem Statement: WHY AM I DOING THIS PROJECT?
 
 Modern cloud applications frequently experience issues such as:
 
@@ -25,11 +25,11 @@ In many teams, these issues are still handled **manually**, leading to:
 * Downtime
 * On-call fatigue
 
-**Goal:** Build a system that detects these issues early and automatically fixes them while notifying engineers.
+**Goal:** To build a system that detects these issues early and automatically fixes them while notifying engineers.
 
 ---
 
-## ��� Solution Architecture
+## ��� Solution Architecture
 
 ### High-Level Architecture Diagram
 
@@ -47,7 +47,7 @@ In many teams, these issues are still handled **manually**, leading to:
                         ▼
               ┌────────────────────┐
               │ ECS Fargate Service │
-              │ (Breakable App)    │
+              │ (A Breakable App)    │
               │  - Desired: 2      │
               └─────────┬──────────┘
                         │
@@ -78,27 +78,11 @@ In many teams, these issues are still handled **manually**, leading to:
         ▼                                ▼
 ┌─────────────┐                  ┌─────────────────┐
 │ ECS Control │                  │ SNS Notifications│
-│ Plane       │                  │ (Email / Slack) │
+│ Plane       │                  │ (Email) │
 └─────────────┘                  └─────────────────┘
 ```
 
-**High-level flow:**
-
-```
-User → Application Load Balancer → ECS Fargate Service
-                                 ↓
-                        CloudWatchMetrics&Alarms
-                                    ↓
-                           EventBridge Rule
-                                 ↓
-                         Lambda Auto-Remediation
-                                 ↓
-                         ECS Action + SNS Alert
-```
-
----
-
-## ��� AWS Services Used
+## ��� AWS Services Used
 
 * **ECS Fargate** – Runs containerized application
 * **Application Load Balancer (ALB)** – Traffic routing and health checks
@@ -111,7 +95,7 @@ User → Application Load Balancer → ECS Fargate Service
 
 ---
 
-## ��� Breakable Application
+## ��� Breakable Application
 
 The application is intentionally designed to fail in realistic ways.
 
@@ -148,10 +132,10 @@ The Lambda function acts as the **decision engine**.
 
 ### Behavior
 
-* Parses CloudWatch alarm events
+* Analyses CloudWatch alarm events
 * Applies deterministic remediation rules
 * Executes ECS actions
-* Sends contextual SNS alerts
+* Sends SNS alerts
 
 ### Example Rules
 
@@ -159,29 +143,22 @@ The Lambda function acts as the **decision engine**.
 * CPU pressure → Scale servce up
 * 5XX errors → Restart tasks
 
-Guardrails are implemeted to prevent:
-
-* Infnite reinistarts
-* Runaway scalg
-
----
-
-## ��� Notficationinis
+## ��� Notfications
 
 Engineers receive alerts such as:
 
 ```
-��� Alarm Triggered: ecs-high-memory-self-healing
-��� Action Taken: Restarted ECS tasks
-��� Cluster: self-healing-cluster
-��� Service: breakable-app-service
+��� Alarm Triggered: ecs-high-memory-self-healing
+��� Action Taken: Restarted ECS tasks
+��� Cluster: self-healing-cluster
+��� Service: breakable-app-service
 ```
 
 This ensures **visibility without manual intervention**.
 
 ---
 
-## ��� Failure Scenarios ested
+## ��� Failure Scenarios
 
 * ManuTal crash via `/crash`
 * Memory leak via `/memory-leak`
@@ -192,7 +169,7 @@ Each scenario successfully triggered alarms and automatic recovery.
 
 ---
 
-## ��� Security & Best Practices
+## ��� Security & Best Practices
 
 * IAM roles follow **least privilege**
 * No hardcoded credentials
@@ -201,30 +178,30 @@ Each scenario successfully triggered alarms and automatic recovery.
 
 ---
 
-## ��� Cost Awareness
+## ��� Cost Awareness
 
 * Fargate used to avoid idle EC2 costs
-* Conservative alarmthreholds
-* Slimits enforced in Lmbd saling aca
+* Conservative alarm thresholds
+* S=Limits enforced in Lmbd scaling
 
 This project is designed to be **low-cost** while demonstrating production patterns.
 
 ---
 
-## ��� Repository Structure
+## ��� Repository Structure
 
 ```
 .
-├── app/            # Breakable application source
-├── lambda/         # Auto-remediation logic
-├── terraform/      # Infrastructure as Code (optional)
-├── diagrams/       # Architecture diagrams
+├── Dockerfile        # Dockerfile to build a docker image 
+├── app.js            # Breakable application source
+├── lambda_file.txt   # Auto-remediation logic
+├── package.json      # Breakable application dependencies    
 └── README.md
 ```
 
 ---
 
-## ��� How to Run
+## ��� How to Run
 
 1. Build and push Docker image to ECR
 2. Deploy ECS service behind ALB
@@ -234,7 +211,7 @@ This project is designed to be **low-cost** while demonstrating production patte
 
 ---
 
-## ��� What This Project Demonstrates
+## ��� What This Project Demonstrates
 
 * Real-world DevOps problem solving
 * AWS ECS production patterns
@@ -244,24 +221,8 @@ This project is designed to be **low-cost** while demonstrating production patte
 
 ---
 
-## ��� Future Improvements
-
-* Multi-service support
-* Cooldown state stored in DynamoDB
-* Deployment rollback logic
-* Slack / PagerDuty integration
-* Terraform-only deployment
-
----
-
-## ��� Author
-
-**Gdswill Nwaia**Junior DevOps Engineer (AWS)
-on
-
----
-
-## ��� Final Note
+## ��� Final Note
+This project focuses on thinking like a production engineer, not just deploying containers. It reflects how real teams build resilient systems in the cloud.
 
 This project focuses on **thinking like a production engineer**, not just deploying containers. It reflects how real teams build resilient systems in the cloud.
 
